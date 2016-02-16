@@ -1,7 +1,7 @@
 package controllers
 
 
-import play.api.libs.json.Json
+import play.Logger
 import play.api.mvc._
 import javax.inject.Inject
 import play.api.libs.ws._
@@ -9,9 +9,19 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
 import scala.concurrent.Future
 
-class Application @Inject() (ws: WSClient) extends Controller {
+object LoggingAction extends ActionBuilder[Request] {
+  def invokeBlock[A] (request: Request[A], block: (Request[A]) => Future[Result]) = {
+    println("Action composition testing")
+    block(request)
+  }
+}
 
+class Application @Inject() (ws: WSClient) extends Controller {
   val request: WSRequest = ws.url("http://127.0.0.1:8000/category/?categoryId=6")
+
+  def composition = LoggingAction {
+    Ok("Composition is working fine")
+  }
 
   def index = Action.async {
     request.get().map {
