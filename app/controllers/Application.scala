@@ -2,6 +2,8 @@ package controllers
 
 
 import play.Logger
+import play.api.data.Form
+import play.api.data.Forms.{tuple, text}
 import play.api.mvc._
 import javax.inject.Inject
 import play.api.libs.ws._
@@ -17,20 +19,40 @@ object LoggingAction extends ActionBuilder[Request] {
 }
 
 class Application @Inject() (ws: WSClient) extends Controller {
-  val request: WSRequest = ws.url("http://127.0.0.1:8000/category/?categoryId=6")
+  val requestUrl: WSRequest = ws.url("http://127.0.0.1:8000/category/?categoryId=6")
 
   def composition = LoggingAction {
     Ok("Composition is working fine")
   }
 
   def index = Action.async {
-    request.get().map {
+    requestUrl.get().map {
       response =>
         Ok(response.json)
     } recover {
       case ex: Exception =>
         Ok(ex.getMessage)
     }
+  }
+
+  def create = Action(parse.tolerantFormUrlEncoded) {
+    request =>
+      val name = request.body.get("name").map(_.head)
+      println(name)
+      println(name.mkString(""))
+      Ok(name.mkString(""))
+  }
+
+  val myFormTuple = Form(
+    tuple(
+      "name" -> text,
+      "age" -> text
+    )
+  )
+  def somePost = Action {
+    implicit request =>
+      val (name, age) = myFormTuple.bindFromRequest.get
+      Ok(name + age)
   }
 
   def show = Action.async {
