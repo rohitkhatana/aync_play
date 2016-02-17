@@ -1,7 +1,4 @@
 package controllers
-
-
-import play.Logger
 import play.api.data.Form
 import play.api.data.Forms.{tuple, text}
 import play.api.mvc._
@@ -64,6 +61,9 @@ class Application @Inject() (ws: WSClient) extends Controller {
 
     httpResponses.map {
         Ok(_)
+    } recover {
+      case ex: Exception =>
+        Ok(ex.getMessage)
     }
 
   }
