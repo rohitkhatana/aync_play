@@ -1,6 +1,7 @@
 package controllers
 import play.api.data.Form
 import play.api.data.Forms.{tuple, mapping, text}
+import play.api.data._
 import play.api.mvc._
 import javax.inject.Inject
 import play.api.libs.ws._
@@ -46,19 +47,35 @@ class Application @Inject() (ws: WSClient) extends Controller {
       "age" -> text
     )
   )
-  case class UserData(name: String)
+
   val singleForm = Form(
+    Forms.single(
+      "name" -> text
+    )
+  )
+  def singleAction = Action {
+    implicit request =>
+      val name = singleForm.bindFromRequest.get
+      Ok(name)
+  }
+
+  case class UserData(name: String)
+  val mappedForm = Form(
     mapping(
       "name" -> text
     )(UserData.apply)(UserData.unapply)
   )
 
+  def mapped = Action {
+    implicit request =>
+      val user = mappedForm.bindFromRequest.get
+      Ok(user.name)
+  }
+
   def somePost = Action {
     implicit request =>
-//      val (name, age) = myFormTuple.bindFromRequest.get
-      val user = singleForm.bindFromRequest.get
-
-      Ok(user.name)
+      val (name, age) = myFormTuple.bindFromRequest.get
+      Ok(name)
   }
 
   def show = Action.async {
